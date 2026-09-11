@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora Vital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dark-green:#1f3d34;
+    --deep-green:#16302a;
+    --mint:#4f8a72;
+    --cream:#f2efe6;
+    --panel:#ffffff;
+    --line:#e3ddc9;
+    --orange:#d97a3f;
+    --gold:#e0a83a;
+    --text:#25302c;
+    --muted:#697a72;
+    --danger:#c85a3f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--text);
+    font-family:'Nunito',sans-serif;
+  }
+  .app{max-width:920px;margin:0 auto;min-height:100vh;}
+
+  /* ---- top bar ---- */
+  .topbar{
+    background:var(--dark-green);color:#fff;padding:16px 20px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    position:sticky;top:0;z-index:10;
+  }
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.15rem;}
+  .topbar .brand .leaf{font-size:1.3rem;}
+  .stats{display:flex;gap:14px;align-items:center;font-size:.88rem;font-weight:700;}
+  .stat-pill{background:rgba(255,255,255,.12);padding:6px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;}
+  .stat-pill.streak{color:#ffcf8b;}
+  .stat-pill.xp{color:#bfe3cf;}
+  .level-pill{background:var(--gold);color:#3a2a06;padding:6px 12px;border-radius:20px;}
+
+  /* ---- tabs ---- */
+  .tabbar{display:flex;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:64px;z-index:9;}
+  .tabbar button{
+    flex:1;padding:14px 8px;border:none;background:none;font-family:inherit;font-weight:700;font-size:.92rem;
+    color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;
+  }
+  .tabbar button.active{color:var(--dark-green);border-color:var(--orange);}
+
+  main{padding:24px 20px 60px;}
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 2px 10px rgba(31,61,52,.04);}
+  .card h2{margin:0 0 16px;font-size:1.15rem;color:var(--dark-green);}
+  .grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;}
+  @media(max-width:760px){.grid-2{grid-template-columns:1fr;}}
+
+  label{display:block;font-weight:700;font-size:.85rem;margin:14px 0 6px;color:var(--dark-green);}
+  input[type=text], textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.92rem;background:#fbfaf6;
+  }
+  textarea{resize:vertical;min-height:64px;}
+  input[type=range]{width:100%;accent-color:var(--orange);}
+  .range-value{font-weight:800;color:var(--orange);font-size:1.3rem;text-align:center;}
+  .btn{
+    display:inline-block;background:var(--dark-green);color:#fff;border:none;padding:12px 22px;
+    border-radius:9px;font-weight:700;font-size:.92rem;cursor:pointer;margin-top:16px;font-family:inherit;
+    transition:transform .1s;
+  }
+  .btn:hover{background:var(--deep-green);}
+  .btn:active{transform:scale(.97);}
+  .btn.secondary{background:transparent;color:var(--dark-green);border:1px solid var(--dark-green);}
+  .btn.orange{background:var(--orange);}
+  .btn.block{display:block;width:100%;text-align:center;}
+  .flash-ok{background:#e4efe2;border:1px solid #9dc39a;color:#2c5c2a;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.88rem;display:none;font-weight:700;}
+  .flash-err{background:#fbe6e0;border:1px solid #e0a08c;color:#8a3820;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.88rem;display:none;font-weight:700;}
+  .alert-box{background:#fdf1e6;border:1px solid var(--orange);color:#7a4318;padding:12px 15px;border-radius:8px;margin-bottom:16px;font-size:.87rem;display:none;}
+
+  .entries{list-style:none;margin:14px 0 0;padding:0;max-height:210px;overflow-y:auto;}
+  .entries li{border-bottom:1px solid var(--line);padding:9px 0;font-size:.85rem;}
+  .entries li .ts{color:var(--muted);font-size:.75rem;}
+  .badge-lvl{display:inline-block;min-width:22px;text-align:center;background:var(--dark-green);color:#fff;border-radius:5px;padding:1px 6px;font-size:.76rem;font-weight:800;margin-right:6px;}
+  .empty-note{color:var(--muted);}
+
+  /* ---- exercise cards grid ---- */
+  .ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:760px){.ex-grid{grid-template-columns:1fr;}}
+  .ex-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .ex-card:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(31,61,52,.09);}
+  .ex-card .icon{font-size:2.1rem;margin-bottom:8px;}
+  .ex-card h3{margin:0 0 6px;font-size:1rem;color:var(--dark-green);}
+  .ex-card p{margin:0;font-size:.8rem;color:var(--muted);}
+  .ex-card .reward{margin-top:10px;font-size:.75rem;font-weight:800;color:var(--gold);}
+
+  /* ---- modal ---- */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(15,25,20,.72);z-index:50;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal{
+    background:var(--cream);border-radius:16px;max-width:520px;width:100%;padding:26px;position:relative;
+    max-height:90vh;overflow-y:auto;
+  }
+  .modal h3{color:var(--dark-green);margin-top:0;}
+  .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
+
+  /* breathing */
+  .breathe-stage{display:flex;flex-direction:column;align-items:center;padding:10px 0 4px;}
+  .breathe-circle{
+    width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #4f8a72, var(--dark-green));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.95rem;
+    transition:transform 4s ease-in-out;transform:scale(0.7);
+  }
+  .breathe-circle.inhale{transform:scale(1.15);transition:transform 4s ease-in-out;}
+  .breathe-circle.exhale{transform:scale(0.7);transition:transform 6s ease-in-out;}
+  .breathe-controls{margin-top:18px;display:flex;gap:10px;justify-content:center;}
+  .breathe-count{margin-top:10px;color:var(--muted);font-size:.85rem;text-align:center;}
+
+  /* 5-4-3-2-1 */
+  .g54321 .step{display:none;}
+  .g54321 .step.active{display:block;}
+  .g54321-input{display:flex;gap:8px;margin-top:10px;}
+  .g54321-input input{flex:1;}
+  .g54321-list{list-style:none;padding:0;margin:10px 0 0;}
+  .g54321-list li{padding:4px 0;font-size:.87rem;}
+  .g54321-progress{font-size:.8rem;color:var(--muted);margin-bottom:6px;}
+
+  /* bubble pop game */
+  .bubble-arena{
+    position:relative;height:360px;border-radius:14px;overflow:hidden;
+    background:linear-gradient(180deg,#e8f2ec,#d3e6dc);border:1px solid var(--line);
+  }
+  .bubble{
+    position:absolute;bottom:-60px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:.72rem;font-weight:700;
+    cursor:pointer;user-select:none;padding:4px;text-align:center;line-height:1.1;
+    box-shadow:0 3px 8px rgba(0,0,0,.15);
+  }
+  .bubble.calm{background:radial-gradient(circle at 30% 30%, #7fb79e, #2f5c4a);}
+  .bubble-hud{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;color:var(--dark-green);margin-bottom:8px;}
+  .bubble-overlay-msg{
+    position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;
+    background:rgba(242,239,230,.94);text-align:center;padding:20px;border-radius:14px;
+  }
+  .bubble-overlay-msg.active{display:flex;}
+
+  /* ---- progress screen ---- */
+  .level-bar-wrap{background:#eee9d8;border-radius:10px;height:16px;overflow:hidden;margin-top:8px;}
+  .level-bar-fill{background:linear-gradient(90deg,var(--orange),var(--gold));height:100%;width:0%;transition:width .4s;}
+  .badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;margin-top:16px;}
+  .badge-item{
+    text-align:center;padding:16px 8px;border-radius:12px;border:1px dashed var(--line);color:var(--muted);
+  }
+  .badge-item.unlocked{border:1px solid var(--gold);background:#fff9ec;color:var(--text);}
+  .badge-item .b-icon{font-size:1.8rem;display:block;margin-bottom:6px;filter:grayscale(1);opacity:.4;}
+  .badge-item.unlocked .b-icon{filter:none;opacity:1;}
+  .badge-item .b-name{font-size:.78rem;font-weight:700;}
+  .streak-row{display:flex;gap:8px;margin-top:10px;}
+  .streak-day{
+    flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#eee9d8;font-size:.75rem;font-weight:700;color:var(--muted);
+  }
+  .streak-day.done{background:var(--dark-green);color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><span class="leaf">🌿</span> Bitácora Vital</div>
+    <div class="stats">
+      <div class="stat-pill streak">🔥 <span id="streakVal">0</span> días</div>
+      <div class="stat-pill xp">⭐ <span id="xpVal">0</span> pts</div>
+      <div class="level-pill">Nivel <span id="levelVal">1</span></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button class="active" onclick="switchScreen('bitacora')" id="navBitacora">Bitácora</button>
+    <button onclick="switchScreen('ejercicios')" id="navEjercicios">Ejercicios</button>
+    <button onclick="switchScreen('progreso')" id="navProgreso">Progreso</button>
+  </div>
+
+  <main>
+
+    <!-- ================= BITÁCORA ================= -->
+    <section class="screen active" id="screenBitacora">
+      <div class="flash-ok" id="flashOk"></div>
+      <div class="flash-err" id="flashErr"></div>
+      <div class="alert-box" id="alertBox">
+        ⚠️ Tu nivel de ansiedad de hoy fue alto. Te recomendamos ir a <strong>Ejercicios</strong> ahora mismo.
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Registrar cómo estás hoy</h2>
+          <form id="diaryForm" onsubmit="return handleDiarySubmit(event)">
+            <label for="anxiety">Nivel de ansiedad</label>
+            <input type="range" id="anxiety" min="0" max="10" value="4"
+                   oninput="document.getElementById('anxietyVal').textContent=this.value">
+            <div class="range-value" id="anxietyVal">4</div>
+
+            <label for="mood">¿Cómo te sientes?</label>
+            <input type="text" id="mood" placeholder="Ej: inquieto/a, tranquilo/a, cansado/a...">
+
+            <label for="note">Notas (opcional)</label>
+            <textarea id="note" placeholder="Algo que quieras recordar de hoy..."></textarea>
+
+            <button type="submit" class="btn block">Guardar registro (+10 pts)</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Tu tendencia</h2>
+          <p style="font-size:.82rem;color:var(--muted);margin-top:-8px;">Promedio: <strong style="color:var(--orange);" id="avgAnxiety">0</strong>/10 · <span id="entryCount">0</span> registro(s)</p>
+          <svg id="trendChart" width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none">
+            <line x1="0" y1="8" x2="320" y2="8" stroke="#e5e0d0" stroke-width="1"/>
+            <line x1="0" y1="60" x2="320" y2="60" stroke="#e5e0d0" stroke-width="1"/>
+            <line x1="0" y1="112" x2="320" y2="112" stroke="#e5e0d0" stroke-width="1"/>
+            <text id="chartEmptyMsg" x="160" y="60" text-anchor="middle" fill="#9aa39c" font-size="12">Sin datos aún</text>
+            <polyline id="chartLine" points="" fill="none" stroke="#1f3d34" stroke-width="2.5"/>
+            <g id="chartDots"></g>
+          </svg>
+          <ul class="entries" id="entriesList">
+            <li class="empty-note" id="emptyEntryNote">Sin registros todavía.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EJERCICIOS ================= -->
+    <section class="screen" id="screenEjercicios">
+      <div class="ex-grid">
+        <div class="ex-card" onclick="openBreatheModal()">
+          <div class="icon">🫁</div>
+          <h3>Respiración guiada</h3>
+          <p>5 ciclos de inhalar y exhalar con el círculo.</p>
+          <div class="reward">+15 pts</div>
+        </div>
+        <div class="ex-card" onclick="openGroundModal()">
+          <div class="icon">🧭</div>
+          <h3>Anclaje 5-4-3-2-1</h3>
+          <p>Reconecta con tus 5 sentidos, paso a paso.</p>
+          <div class="reward">+15 pts</div>
+        </div>
+        <div class="ex-card" onclick="openBubbleModal()">
+          <div class="icon">🫧</div>
+          <h3>Revienta preocupaciones</h3>
+          <p>Un mini-juego para soltar pensamientos ansiosos.</p>
+          <div class="reward">hasta +25 pts</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PROGRESO ================= -->
+    <section class="screen" id="screenProgreso">
+      <div class="card">
+        <h2>Nivel <span id="levelValBig">1</span></h2>
+        <p style="font-size:.82rem;color:var(--muted);margin:0;"><span id="xpIntoLevel">0</span>/50 pts para el siguiente nivel</p>
+        <div class="level-bar-wrap"><div class="level-bar-fill" id="levelBarFill"></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Racha de esta semana</h2>
+        <div class="streak-row" id="streakRow"></div>
+      </div>
+
+      <div class="card">
+        <h2>Insignias</h2>
+        <div class="badges-grid" id="badgesGrid"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= BREATHING MODAL ================= -->
+<div class="modal-overlay" id="breatheModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('breatheModal', stopBreathing)">✕</button>
+    <h3>Respiración guiada</h3>
+    <p style="font-size:.87rem;color:var(--muted);margin-top:0;">Sigue el círculo: inhala mientras crece, exhala mientras se contrae. 5 ciclos completos.</p>
+    <div class="breathe-stage">
+      <div class="breathe-circle" id="breatheCircle">Prepárate</div>
+      <div class="breathe-count" id="breatheCount">Ciclo 0 / 5</div>
+      <div class="breathe-controls">
+        <button class="btn" onclick="startBreathing()">Iniciar</button>
+        <button class="btn secondary" onclick="stopBreathing()">Detener</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GROUNDING MODAL ================= -->
+<div class="modal-overlay" id="groundModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('groundModal')">✕</button>
+    <h3>Anclaje 5-4-3-2-1</h3>
+    <div class="g54321">
+      <p class="g54321-progress" id="g54321Progress">Paso 1 de 5</p>
+      <div class="step active"><p><strong>Nombra 5 cosas que puedes ver</strong> a tu alrededor ahora mismo.</p></div>
+      <div class="step"><p><strong>Nombra 4 cosas que puedes tocar</strong> (una textura, tu ropa, una superficie).</p></div>
+      <div class="step"><p><strong>Nombra 3 cosas que puedes oír</strong> en este momento.</p></div>
+      <div class="step"><p><strong>Nombra 2 cosas que puedes oler.</strong></p></div>
+      <div class="step"><p><strong>Nombra 1 cosa que puedas saborear</strong>, o el sabor en tu boca ahora.</p></div>
+
+      <div class="g54321-input">
+        <input type="text" id="g54321Field" placeholder="Escribe una cosa y presiona Agregar...">
+        <button class="btn" style="margin-top:0;" onclick="addSense()">Agregar</button>
+      </div>
+      <ul class="g54321-list" id="g54321List"></ul>
+
+      <div class="breathe-controls">
+        <button class="btn secondary" onclick="prevStep()">Atrás</button>
+        <button class="btn" id="g54321NextBtn" onclick="nextStep()">Siguiente</button>
+      </div>
+      <p id="g54321Done" style="display:none;color:#2c5c2a;font-weight:700;margin-top:14px;">
+        ✔ Bien hecho. Te anclaste al presente con tus 5 sentidos. (+15 pts)
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= BUBBLE GAME MODAL ================= -->
+<div class="modal-overlay" id="bubbleModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('bubbleModal', stopBubbleGame)">✕</button>
+    <h3>Revienta preocupaciones</h3>
+    <div class="bubble-hud">
+      <span>⏱ <span id="bubbleTime">30</span>s</span>
+      <span>🫧 Reventadas: <span id="bubbleScore">0</span></span>
+    </div>
+    <div class="bubble-arena" id="bubbleArena">
+      <div class="bubble-overlay-msg" id="bubbleStartMsg">
+        <p style="max-width:280px;">Toca cada burbuja de preocupación antes de que suba y desaparezca. Respira mientras juegas — no hay apuro.</p>
+        <button class="btn orange" onclick="startBubbleGame()">Empezar (30s)</button>
+      </div>
+      <div class="bubble-overlay-msg" id="bubbleEndMsg">
+        <p style="font-weight:700;color:var(--dark-green);" id="bubbleEndText"></p>
+        <button class="btn" onclick="resetBubbleGame()">Jugar de nuevo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STATE (in-memory only — resets on reload, no persistence)
+   ============================================================ */
+let entries = [];
+let xp = 0;
+let streak = 0;
+let lastEntryDay = null;
+let breathingCompletions = 0;
+let groundingCompletions = 0;
+let bubbleWins = 0;
+const weekDone = [false,false,false,false,false,false,false]; // Mon..Sun, toy streak calendar
+
+const BADGES = [
+  { id:'first_entry', icon:'📝', name:'Primer registro', check: () => entries.length >= 1 },
+  { id:'streak3', icon:'🔥', name:'3 días seguidos', check: () => streak >= 3 },
+  { id:'breather', icon:'🫁', name:'Respirador experto', check: () => breathingCompletions >= 3 },
+  { id:'grounded', icon:'🧭', name:'Anclado', check: () => groundingCompletions >= 3 },
+  { id:'bubble', icon:'🫧', name:'Cazador de preocupaciones', check: () => bubbleWins >= 1 },
+  { id:'level5', icon:'🏅', name:'Nivel 5', check: () => currentLevel() >= 5 },
+];
+
+function currentLevel(){ return Math.floor(xp / 50) + 1; }
+
+function addXp(amount){
+  xp += amount;
+  renderTopbar();
+  renderProgreso();
+}
+
+function bumpStreakForToday(){
+  const todayKey = new Date().toDateString();
+  if (lastEntryDay !== todayKey){
+    streak += 1;
+    lastEntryDay = todayKey;
+    const dow = (new Date().getDay() + 6) % 7; // make Monday index 0
+    weekDone[dow] = true;
+  }
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tabbar button').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  if (name === 'progreso') renderProgreso();
+}
+
+function closeModal(id, onClose){
+  document.getElementById(id).classList.remove('active');
+  if (onClose) onClose();
+}
+
+/* ============================================================
+   DIARY
+   ============================================================ */
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function handleDiarySubmit(evt){
+  evt.preventDefault();
+  const anxiety = parseInt(document.getElementById('anxiety').value, 10);
+  const mood = document.getElementById('mood').value.trim();
+  const note = document.getElementById('note').value.trim();
+
+  const flashOk = document.getElementById('flashOk');
+  const flashErr = document.getElementById('flashErr');
+  flashOk.style.display = 'none';
+  flashErr.style.display = 'none';
+
+  if (mood === ''){
+    flashErr.textContent = 'Cuéntanos brevemente cómo te sientes hoy.';
+    flashErr.style.display = 'block';
+    return false;
+  }
+
+  const now = new Date();
+  const ts = now.toLocaleDateString('es-CL') + ' ' + now.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
+  entries.push({ ts, anxiety, mood, note });
+  if (entries.length > 14) entries = entries.slice(-14);
+
+  bumpStreakForToday();
+  addXp(10);
+
+  flashOk.textContent = '¡Registro guardado! +10 pts';
+  flashOk.style.display = 'block';
+  document.getElementById('alertBox').style.display = anxiety >= 8 ? 'block' : 'none';
+
+  document.getElementById('diaryForm').reset();
+  document.getElementById('anxietyVal').textContent = '4';
+  document.getElementById('anxiety').value = 4;
+
+  renderDiary();
+  renderTopbar();
+  checkBadges();
+  return false;
+}
+
+function renderDiary(){
+  const count = entries.length;
+  document.getElementById('entryCount').textContent = count;
+  const avg = count > 0 ? (entries.reduce((s,e) => s + e.anxiety, 0) / count).toFixed(1) : '0';
+  document.getElementById('avgAnxiety').textContent = avg;
+
+  const emptyMsg = document.getElementById('chartEmptyMsg');
+  const line = document.getElementById('chartLine');
+  const dots = document.getElementById('chartDots');
+  dots.innerHTML = '';
+
+  if (count === 0){
+    emptyMsg.style.display = 'block';
+    line.setAttribute('points', '');
+  } else {
+    emptyMsg.style.display = 'none';
+    const pts = entries.map((e,i) => {
+      const x = count === 1 ? 160 : (i / (count - 1)) * 320;
+      const y = 112 - (e.anxiety / 10) * 104;
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    line.setAttribute('points', pts.join(' '));
+    entries.forEach((e,i) => {
+      const x = count === 1 ? 160 : (i / (count - 1)) * 320;
+      const y = 112 - (e.anxiety / 10) * 104;
+      const color = e.anxiety >= 8 ? '#d97a3f' : '#1f3d34';
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1));
+      c.setAttribute('r', 4); c.setAttribute('fill', color);
+      dots.appendChild(c);
+    });
+  }
+
+  const list = document.getElementById('entriesList');
+  list.innerHTML = '';
+  if (count === 0){
+    const li = document.createElement('li');
+    li.className = 'empty-note';
+    li.textContent = 'Sin registros todavía.';
+    list.appendChild(li);
+  } else {
+    [...entries].reverse().forEach(e => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="ts">' + escapeHtml(e.ts) + '</span><br>' +
+        '<span class="badge-lvl">' + e.anxiety + '</span>' +
+        '<strong>' + escapeHtml(e.mood) + '</strong>' +
+        (e.note ? ' — ' + escapeHtml(e.note) : '');
+      list.appendChild(li);
+    });
+  }
+}
+renderDiary();
+
+/* ============================================================
+   TOP BAR / PROGRESS
+   ============================================================ */
+function renderTopbar(){
+  document.getElementById('streakVal').textContent = streak;
+  document.getElementById('xpVal').textContent = xp;
+  document.getElementById('levelVal').textContent = currentLevel();
+}
+
+function renderProgreso(){
+  const lvl = currentLevel();
+  const into = xp % 50;
+  document.getElementById('levelValBig').textContent = lvl;
+  document.getElementById('xpIntoLevel').textContent = into;
+  document.getElementById('levelBarFill').style.width = (into/50*100) + '%';
+
+  const labels = ['L','M','M','J','V','S','D'];
+  const row = document.getElementById('streakRow');
+  row.innerHTML = '';
+  labels.forEach((lab,i) => {
+    const div = document.createElement('div');
+    div.className = 'streak-day' + (weekDone[i] ? ' done' : '');
+    div.textContent = lab;
+    row.appendChild(div);
+  });
+
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = '';
+  BADGES.forEach(b => {
+    const unlocked = b.check();
+    const div = document.createElement('div');
+    div.className = 'badge-item' + (unlocked ? ' unlocked' : '');
+    div.innerHTML = '<span class="b-icon">' + b.icon + '</span><span class="b-name">' + b.name + '</span>';
+    grid.appendChild(div);
+  });
+}
+renderTopbar();
+
+function checkBadges(){ renderProgreso(); }
+
+/* ============================================================
+   BREATHING EXERCISE
+   ============================================================ */
+let breatheTimer = null;
+let breatheCycles = 0;
+const TOTAL_CYCLES = 5;
+
+function openBreatheModal(){ document.getElementById('breatheModal').classList.add('active'); }
+
+function startBreathing(){
+  stopBreathing();
+  breatheCycles = 0;
+  document.getElementById('breatheCount').textContent = 'Ciclo 0 / ' + TOTAL_CYCLES;
+  runBreathCycle();
+}
+
+function runBreathCycle(){
+  const circle = document.getElementById('breatheCircle');
+  if (breatheCycles >= TOTAL_CYCLES){
+    circle.textContent = '¡Listo! 🎉';
+    circle.className = 'breathe-circle';
+    breathingCompletions++;
+    addXp(15);
+    checkBadges();
+    return;
+  }
+  circle.className = 'breathe-circle inhale';
+  circle.textContent = 'Inhala...';
+  breatheTimer = setTimeout(() => {
+    circle.textContent = 'Sostén...';
+    breatheTimer = setTimeout(() => {
+      circle.className = 'breathe-circle exhale';
+      circle.textContent = 'Exhala...';
+      breatheTimer = setTimeout(() => {
+        breatheCycles++;
+        document.getElementById('breatheCount').textContent = 'Ciclo ' + breatheCycles + ' / ' + TOTAL_CYCLES;
+        runBreathCycle();
+      }, 6000);
+    }, 1500);
+  }, 4000);
+}
+
+function stopBreathing(){
+  clearTimeout(breatheTimer);
+  const circle = document.getElementById('breatheCircle');
+  circle.className = 'breathe-circle';
+  circle.textContent = 'Prepárate';
+}
+
+/* ============================================================
+   5-4-3-2-1 GROUNDING
+   ============================================================ */
+function openGroundModal(){
+  currentStep = 0;
+  renderStep();
+  document.getElementById('groundModal').classList.add('active');
+}
+
+const steps = document.querySelectorAll('.g54321 .step');
+let currentStep = 0;
+let groundAwarded = false;
+
+function renderStep(){
+  steps.forEach((s,i) => s.classList.toggle('active', i === currentStep));
+  document.getElementById('g54321Progress').textContent = 'Paso ' + (currentStep+1) + ' de ' + steps.length;
+  document.getElementById('g54321List').innerHTML = '';
+  document.getElementById('g54321Field').value = '';
+  document.getElementById('g54321Done').style.display = 'none';
+  document.getElementById('g54321NextBtn').textContent = (currentStep === steps.length - 1) ? 'Finalizar' : 'Siguiente';
+  groundAwarded = false;
+}
+
+function addSense(){
+  const field = document.getElementById('g54321Field');
+  const val = field.value.trim();
+  if (val === '') return;
+  const li = document.createElement('li');
+  li.textContent = '• ' + val;
+  document.getElementById('g54321List').appendChild(li);
+  field.value = '';
+  field.focus();
+}
+document.getElementById('g54321Field').addEventListener('keydown', function(e){
+  if (e.key === 'Enter'){ e.preventDefault(); addSense(); }
+});
+
+function nextStep(){
+  if (currentStep < steps.length - 1){
+    currentStep++;
+    renderStep();
+  } else {
+    document.getElementById('g54321Done').style.display = 'block';
+    if (!groundAwarded){
+      groundAwarded = true;
+      groundingCompletions++;
+      addXp(15);
+      checkBadges();
+    }
+  }
+}
+function prevStep(){
+  if (currentStep > 0){ currentStep--; renderStep(); }
+}
+
+/* ============================================================
+   BUBBLE POP MINI-GAME
+   ============================================================ */
+const WORRIES = ['ansiedad','tarea','deadline','presión','duda','miedo','estrés','ruido'];
+let bubbleInterval = null;
+let bubbleCountdown = null;
+let bubbleTimeLeft = 30;
+let bubbleScore = 0;
+let bubbleActive = false;
+
+function openBubbleModal(){
+  resetBubbleGame();
+  document.getElementById('bubbleModal').classList.add('active');
+}
+
+function resetBubbleGame(){
+  stopBubbleGame();
+  bubbleScore = 0;
+  bubbleTimeLeft = 30;
+  document.getElementById('bubbleScore').textContent = '0';
+  document.getElementById('bubbleTime').textContent = '30';
+  document.getElementById('bubbleEndMsg').classList.remove('active');
+  document.getElementById('bubbleStartMsg').classList.add('active');
+  document.getElementById('bubbleArena').querySelectorAll('.bubble').forEach(b => b.remove());
+}
+
+function startBubbleGame(){
+  document.getElementById('bubbleStartMsg').classList.remove('active');
+  bubbleActive = true;
+  bubbleScore = 0;
+  bubbleTimeLeft = 30;
+  document.getElementById('bubbleScore').textContent = '0';
+  document.getElementById('bubbleTime').textContent = '30';
+
+  bubbleInterval = setInterval(spawnBubble, 750);
+  bubbleCountdown = setInterval(() => {
+    bubbleTimeLeft--;
+    document.getElementById('bubbleTime').textContent = bubbleTimeLeft;
+    if (bubbleTimeLeft <= 0) endBubbleGame();
+  }, 1000);
+}
+
+function spawnBubble(){
+  if (!bubbleActive) return;
+  const arena = document.getElementById('bubbleArena');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble calm';
+  const size = 46 + Math.random()*34;
+  bubble.style.width = size + 'px';
+  bubble.style.height = size + 'px';
+  bubble.style.left = (Math.random() * 82) + '%';
+  bubble.textContent = WORRIES[Math.floor(Math.random()*WORRIES.length)];
+  const duration = 4.5 + Math.random()*2;
+  bubble.style.transition = 'bottom ' + duration + 's linear, opacity .3s';
+  arena.appendChild(bubble);
+
+  requestAnimationFrame(() => { bubble.style.bottom = '380px'; });
+
+  const timeout = setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, duration*1000 + 50);
+
+  bubble.addEventListener('click', () => {
+    if (!bubbleActive) return;
+    clearTimeout(timeout);
+    bubble.style.opacity = '0';
+    bubble.style.transform = 'scale(1.4)';
+    bubbleScore++;
+    document.getElementById('bubbleScore').textContent = bubbleScore;
+    setTimeout(() => bubble.remove(), 250);
+  });
+}
+
+function endBubbleGame(){
+  bubbleActive = false;
+  clearInterval(bubbleInterval);
+  clearInterval(bubbleCountdown);
+  document.getElementById('bubbleArena').querySelectorAll('.bubble').forEach(b => b.remove());
+
+  const earned = Math.min(25, bubbleScore * 2);
+  addXp(earned);
+  if (bubbleScore >= 8){
+    bubbleWins++;
+    checkBadges();
+  }
+
+  document.getElementById('bubbleEndText').textContent =
+    'Reventaste ' + bubbleScore + ' preocupaciones. +' + earned + ' pts. Respira hondo — bien hecho.';
+  document.getElementById('bubbleEndMsg').classList.add('active');
+}
+
+function stopBubbleGame(){
+  bubbleActive = false;
+  clearInterval(bubbleInterval);
+  clearInterval(bubbleCountdown);
+}
+</script>
+
+</body>
+</html>
