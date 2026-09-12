@@ -44,19 +44,28 @@
   .level-pill{background:var(--gold);color:#3a2a06;padding:6px 12px;border-radius:20px;}
 
   /* ---- tabs ---- */
-  .tabbar{display:flex;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:64px;z-index:9;}
+  .tabbar{display:flex;flex-wrap:wrap;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:64px;z-index:9;}
   .tabbar button{
-    flex:1;padding:14px 8px;border:none;background:none;font-family:inherit;font-weight:700;font-size:.92rem;
+    flex:1 1 auto;min-width:88px;padding:13px 6px;border:none;background:none;font-family:inherit;font-weight:700;font-size:.84rem;
     color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;
   }
   .tabbar button.active{color:var(--dark-green);border-color:var(--orange);}
 
   main{padding:24px 20px 60px;}
+  @media (max-width:480px){
+    main{padding:16px 12px 48px;}
+    .topbar{padding:12px 14px;}
+    .topbar .brand{font-size:1.02rem;}
+    .stats{gap:8px;font-size:.78rem;}
+    .stat-pill, .level-pill{padding:5px 9px;}
+    .tabbar button{font-size:.74rem;padding:11px 4px;min-width:64px;}
+    .card{padding:16px;}
+  }
   .screen{display:none;}
   .screen.active{display:block;animation:fadeIn .25s ease;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 2px 10px rgba(31,61,52,.04);}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 2px 10px rgba(31,61,52,.04);position:relative;}
   .card h2{margin:0 0 16px;font-size:1.15rem;color:var(--dark-green);}
   .grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;}
   @media(max-width:760px){.grid-2{grid-template-columns:1fr;}}
@@ -78,6 +87,8 @@
   .btn.secondary{background:transparent;color:var(--dark-green);border:1px solid var(--dark-green);}
   .btn.orange{background:var(--orange);}
   .btn.block{display:block;width:100%;text-align:center;}
+  .btn:disabled, .btn[disabled]{background:#c9c4b4;color:#7d7a6d;cursor:not-allowed;}
+  .btn.secondary:disabled{background:transparent;border-color:#c9c4b4;color:#a6a293;}
   .flash-ok{background:#e4efe2;border:1px solid #9dc39a;color:#2c5c2a;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.88rem;display:none;font-weight:700;}
   .flash-err{background:#fbe6e0;border:1px solid #e0a08c;color:#8a3820;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.88rem;display:none;font-weight:700;}
   .alert-box{background:#fdf1e6;border:1px solid var(--orange);color:#7a4318;padding:12px 15px;border-radius:8px;margin-bottom:16px;font-size:.87rem;display:none;}
@@ -104,15 +115,18 @@
   /* ---- modal ---- */
   .modal-overlay{
     display:none;position:fixed;inset:0;background:rgba(15,25,20,.72);z-index:50;
-    align-items:center;justify-content:center;padding:20px;
+    align-items:center;justify-content:center;padding:16px;
   }
   .modal-overlay.active{display:flex;}
   .modal{
     background:var(--cream);border-radius:16px;max-width:520px;width:100%;padding:26px;position:relative;
-    max-height:90vh;overflow-y:auto;
+    max-height:92vh;overflow-y:auto;
   }
   .modal h3{color:var(--dark-green);margin-top:0;}
-  .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
+  .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);padding:6px;line-height:1;}
+  @media (max-width:480px){
+    .modal{padding:18px 16px;border-radius:12px;}
+  }
 
   /* breathing */
   .breathe-stage{display:flex;flex-direction:column;align-items:center;padding:10px 0 4px;}
@@ -136,41 +150,74 @@
   .g54321-list li{padding:4px 0;font-size:.87rem;}
   .g54321-progress{font-size:.8rem;color:var(--muted);margin-bottom:6px;}
 
-  /* bubble pop game */
+  /* bubble pop game — sized relative to viewport so it fits phones, tablets and desktop */
   .bubble-arena{
-    position:relative;height:360px;border-radius:14px;overflow:hidden;
+    position:relative;width:100%;height:min(52vh,360px);min-height:220px;border-radius:14px;overflow:hidden;
     background:linear-gradient(180deg,#e8f2ec,#d3e6dc);border:1px solid var(--line);
+    touch-action:manipulation;
   }
   .bubble{
-    position:absolute;bottom:-60px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;color:#fff;font-size:.72rem;font-weight:700;
-    cursor:pointer;user-select:none;padding:4px;text-align:center;line-height:1.1;
+    position:absolute;bottom:-15%;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+    cursor:pointer;user-select:none;-webkit-user-select:none;padding:4px;text-align:center;line-height:1.1;
     box-shadow:0 3px 8px rgba(0,0,0,.15);
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    font-size:clamp(.62rem,2.6vw,.75rem);
   }
   .bubble.calm{background:radial-gradient(circle at 30% 30%, #7fb79e, #2f5c4a);}
   .bubble-hud{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;color:var(--dark-green);margin-bottom:8px;}
   .bubble-overlay-msg{
     position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;
-    background:rgba(242,239,230,.94);text-align:center;padding:20px;border-radius:14px;
+    background:rgba(242,239,230,.94);text-align:center;padding:20px;border-radius:14px;gap:6px;
   }
   .bubble-overlay-msg.active{display:flex;}
+  @media (max-width:480px){
+    .bubble-hud{font-size:.78rem;}
+  }
 
   /* ---- progress screen ---- */
   .level-bar-wrap{background:#eee9d8;border-radius:10px;height:16px;overflow:hidden;margin-top:8px;}
   .level-bar-fill{background:linear-gradient(90deg,var(--orange),var(--gold));height:100%;width:0%;transition:width .4s;}
   .badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;margin-top:16px;}
-  .badge-item{
-    text-align:center;padding:16px 8px;border-radius:12px;border:1px dashed var(--line);color:var(--muted);
-  }
+  .badge-item{text-align:center;padding:16px 8px;border-radius:12px;border:1px dashed var(--line);color:var(--muted);}
   .badge-item.unlocked{border:1px solid var(--gold);background:#fff9ec;color:var(--text);}
   .badge-item .b-icon{font-size:1.8rem;display:block;margin-bottom:6px;filter:grayscale(1);opacity:.4;}
   .badge-item.unlocked .b-icon{filter:none;opacity:1;}
   .badge-item .b-name{font-size:.78rem;font-weight:700;}
   .streak-row{display:flex;gap:8px;margin-top:10px;}
-  .streak-day{
-    flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#eee9d8;font-size:.75rem;font-weight:700;color:var(--muted);
-  }
+  .streak-day{flex:1;text-align:center;padding:10px 0;border-radius:8px;background:#eee9d8;font-size:.75rem;font-weight:700;color:var(--muted);}
   .streak-day.done{background:var(--dark-green);color:#fff;}
+
+  /* ---- coming soon badge ---- */
+  .soon-ribbon{
+    position:absolute;top:14px;right:14px;background:var(--gold);color:#3a2a06;
+    font-size:.68rem;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:.02em;
+  }
+  .soon-banner{
+    background:#fdf1e6;border:1px solid var(--orange);color:#7a4318;padding:10px 14px;border-radius:8px;
+    font-size:.83rem;margin-bottom:16px;
+  }
+  .disabled-block{opacity:.55;pointer-events:none;}
+
+  /* ---- therapist tab ---- */
+  .therapist-profile{display:flex;gap:16px;align-items:center;margin-bottom:6px;}
+  .therapist-avatar{
+    width:64px;height:64px;border-radius:50%;background:#e3ddc9;display:flex;align-items:center;justify-content:center;
+    font-size:1.6rem;color:var(--muted);flex-shrink:0;
+  }
+  .therapist-name{font-weight:800;color:var(--dark-green);font-size:1.02rem;}
+  .therapist-role{font-size:.8rem;color:var(--muted);}
+
+  /* ---- ai chat tab ---- */
+  .chat-window{
+    background:#fbfaf6;border:1px solid var(--line);border-radius:12px;padding:16px;height:280px;
+    overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;
+  }
+  .chat-bubble{max-width:78%;padding:10px 14px;border-radius:14px;font-size:.87rem;line-height:1.4;}
+  .chat-bubble.bot{background:#e6efe9;color:var(--text);align-self:flex-start;border-bottom-left-radius:4px;}
+  .chat-bubble.user{background:var(--dark-green);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+  .chat-input-row{display:flex;gap:8px;}
+  .chat-input-row input{flex:1;}
 </style>
 </head>
 <body>
@@ -189,6 +236,8 @@
     <button class="active" onclick="switchScreen('bitacora')" id="navBitacora">Bitácora</button>
     <button onclick="switchScreen('ejercicios')" id="navEjercicios">Ejercicios</button>
     <button onclick="switchScreen('progreso')" id="navProgreso">Progreso</button>
+    <button onclick="switchScreen('terapeuta')" id="navTerapeuta">Terapeuta</button>
+    <button onclick="switchScreen('chatia')" id="navChatia">Chat IA</button>
   </div>
 
   <main>
@@ -278,6 +327,58 @@
       <div class="card">
         <h2>Insignias</h2>
         <div class="badges-grid" id="badgesGrid"></div>
+      </div>
+    </section>
+
+    <!-- ================= TERAPEUTA (placeholder, no operativo) ================= -->
+    <section class="screen" id="screenTerapeuta">
+      <div class="card">
+        <span class="soon-ribbon">Próximamente</span>
+        <h2>Contacto con tu terapeuta</h2>
+        <div class="soon-banner">
+          Esta función todavía no está conectada a un profesional real. Por ahora es solo una vista previa de cómo se verá.
+        </div>
+
+        <div class="therapist-profile">
+          <div class="therapist-avatar">🧑‍⚕️</div>
+          <div>
+            <div class="therapist-name">Sin terapeuta asignado</div>
+            <div class="therapist-role">Se asignará durante el proceso de validación clínica</div>
+          </div>
+        </div>
+
+        <div class="disabled-block">
+          <label>Enviar un mensaje</label>
+          <textarea placeholder="Escribe algo para tu terapeuta..." disabled></textarea>
+          <label>Agendar una sesión</label>
+          <input type="text" placeholder="Selecciona fecha y hora" disabled>
+          <button class="btn block" disabled>Enviar mensaje</button>
+          <button class="btn secondary block" disabled>Agendar sesión</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CHAT IA (placeholder, no operativo) ================= -->
+    <section class="screen" id="screenChatia">
+      <div class="card">
+        <span class="soon-ribbon">Próximamente</span>
+        <h2>Chat con IA de apoyo</h2>
+        <div class="soon-banner">
+          El chat con inteligencia artificial está en desarrollo y aún no procesa mensajes reales. Esta es solo una vista previa de la interfaz.
+        </div>
+
+        <div class="chat-window">
+          <div class="chat-bubble bot">Hola 👋 Cuando esta función esté disponible, podré conversar contigo y sugerirte ejercicios según cómo te sientas.</div>
+          <div class="chat-bubble user">¿Puedes ayudarme ahora?</div>
+          <div class="chat-bubble bot">Todavía no — esta función está en desarrollo. Mientras tanto, prueba los ejercicios de la pestaña "Ejercicios".</div>
+        </div>
+
+        <div class="disabled-block">
+          <div class="chat-input-row">
+            <input type="text" placeholder="Escribe un mensaje..." disabled>
+            <button class="btn" style="margin-top:0;" disabled>Enviar</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -699,30 +800,55 @@ function startBubbleGame(){
 function spawnBubble(){
   if (!bubbleActive) return;
   const arena = document.getElementById('bubbleArena');
+  // Read the arena's *actual* rendered size every time — this is what makes
+  // the game work on phones/tablets/desktop instead of assuming a fixed height.
+  const arenaW = arena.clientWidth;
+  const arenaH = arena.clientHeight;
+  if (arenaW === 0 || arenaH === 0) return; // modal not visible/laid out yet
+
   const bubble = document.createElement('div');
   bubble.className = 'bubble calm';
-  const size = 46 + Math.random()*34;
+
+  // Bubble size scales with the arena so it never gets too big for small phones
+  // or too tiny on desktop.
+  const maxSize = Math.max(34, Math.min(76, arenaH * 0.32, arenaW * 0.24));
+  const minSize = Math.max(28, maxSize * 0.68);
+  const size = minSize + Math.random() * (maxSize - minSize);
   bubble.style.width = size + 'px';
   bubble.style.height = size + 'px';
-  bubble.style.left = (Math.random() * 82) + '%';
+
+  // Keep the bubble fully inside the arena horizontally on any screen width.
+  const maxLeftPx = Math.max(0, arenaW - size);
+  bubble.style.left = (Math.random() * maxLeftPx) + 'px';
+
   bubble.textContent = WORRIES[Math.floor(Math.random()*WORRIES.length)];
   const duration = 4.5 + Math.random()*2;
-  bubble.style.transition = 'bottom ' + duration + 's linear, opacity .3s';
+  bubble.style.transition = 'bottom ' + duration + 's linear, opacity .3s, transform .25s';
   arena.appendChild(bubble);
 
-  requestAnimationFrame(() => { bubble.style.bottom = '380px'; });
+  // Target is computed from the real arena height, so it always travels the
+  // right distance whether the arena is 220px tall (small phone) or 360px (desktop).
+  requestAnimationFrame(() => { bubble.style.bottom = (arenaH + 60) + 'px'; });
 
   const timeout = setTimeout(() => { if (bubble.parentNode) bubble.remove(); }, duration*1000 + 50);
 
-  bubble.addEventListener('click', () => {
-    if (!bubbleActive) return;
+  let popped = false;
+  function pop(evt){
+    if (popped || !bubbleActive) return;
+    popped = true;
+    if (evt && evt.cancelable) evt.preventDefault();
     clearTimeout(timeout);
     bubble.style.opacity = '0';
     bubble.style.transform = 'scale(1.4)';
     bubbleScore++;
     document.getElementById('bubbleScore').textContent = bubbleScore;
     setTimeout(() => bubble.remove(), 250);
-  });
+  }
+  // pointerdown fires immediately for touch, mouse and pen alike (no 300ms
+  // delay); click is kept as a fallback for older browsers. The `popped`
+  // flag stops the pair from ever double-counting a single tap.
+  bubble.addEventListener('pointerdown', pop);
+  bubble.addEventListener('click', pop);
 }
 
 function endBubbleGame(){
